@@ -1,42 +1,58 @@
-// src/services/db/apiService.js
-import { dbClient } from "./client";
+import { supabase } from "./client";
 
-// Get all APIs for a user
-export async function getApis(userId) {
-  const { data, error } = await dbClient
-    .from("apis")
+// -----------------------------
+// Users
+// -----------------------------
+export async function getUser(userId) {
+  const { data, error } = await supabase
+    .from("users")
     .select("*")
-    .eq("user_id", userId);
+    .eq("id", userId)
+    .single();
+
   if (error) throw error;
   return data;
 }
 
-// Add new API
+export async function addUser(user) {
+  const { data, error } = await supabase.from("users").insert([user]);
+  if (error) throw error;
+  return data;
+}
+
+// -----------------------------
+// APIs
+// -----------------------------
 export async function addApi(api) {
-  const { data, error } = await dbClient
-    .from("apis")
-    .insert([api]);
+  const { data, error } = await supabase.from("apis").insert([api]);
   if (error) throw error;
-  return data;
+  return data[0];
 }
 
-// Get API metrics
-export async function getApiMetrics(apiId) {
-  const { data, error } = await dbClient
-    .from("api_metrics")
+export async function getApis(userId) {
+  const { data, error } = await supabase
+    .from("apis")
     .select("*")
-    .eq("api_id", apiId)
-    .order("checked_at", { ascending: true });
+    .eq("userId", userId);
   if (error) throw error;
   return data;
 }
 
-// Update API (e.g., status or alert threshold)
-export async function updateApi(apiId, payload) {
-  const { data, error } = await dbClient
-    .from("apis")
-    .update(payload)
-    .eq("id", apiId);
+// -----------------------------
+// API Metrics
+// -----------------------------
+export async function addApiMetric(metric) {
+  const { data, error } = await supabase.from("apiMetrics").insert([metric]);
+  if (error) throw error;
+  return data[0];
+}
+
+export async function getApiMetrics(apiId) {
+  const { data, error } = await supabase
+    .from("apiMetrics")
+    .select("*")
+    .eq("apiId", apiId)
+    .order("checkedAt", { ascending: true });
   if (error) throw error;
   return data;
 }
