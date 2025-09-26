@@ -10,7 +10,7 @@ import { getApis } from "../../services/db/apiService";
 import { useAuth } from "../../services/db/authClient"; // FIX: Assume useAuth is a named export
 
 export default function ApisPage() {
-  // 1. Core Hooks (must run unconditionally)
+  // 1. Core Hooks (must run unconditionally)ww
   // ⬅️ NOTE: The useAuth hook provides both user AND loading state.
   const { user, loading: authLoading } = useAuth(); 
   const [apis, setApis] = useState([]);
