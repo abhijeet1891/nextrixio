@@ -1,47 +1,46 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "../../services/db/client";
 import { addUser } from "../../services/db/apiService";
+import { getAuthClient } from "../../services/db/authClient";
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const supabase = getAuthClient();
+
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // 1️⃣ Sign up user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
       if (authError) throw authError;
 
-      // 2️⃣ Save extra user info using your apiService
-      await addUser({
-        id: authData.user.id, // link Auth UID
+      const user = authData.user;
+      if (!user) {
+        throw new Error("Sign-up failed: User data missing.");
+      }
+      await addUser(supabase, {
+        id: user.id,
         name,
         email,
         plan: "free",
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       });
-
       alert("Signup successful!");
-      // TODO: redirect to dashboard or login page
-
     } catch (err) {
-      console.error(err);
+      console.error("Signup error:", err);
       alert(err.message);
     } finally {
       setLoading(false);
     }
   };
-
-    return (
-      <div className="flex flex-col items-center justify-center h-screen px-4">
+  return (
+    <div className="flex flex-col items-center justify-center h-screen px-4">
       <h2 className="text-3xl font-bold mb-6">Sign Up</h2>
       <form
         className="flex flex-col w-full max-w-sm space-y-4"
@@ -80,6 +79,5 @@ export default function SignupPage() {
         </button>
       </form>
     </div>
-    );
-  }
-  
+  );
+}

@@ -14,8 +14,15 @@ export async function getUser(userId) {
   return data;
 }
 
-export async function addUser(user) {
-  const { data, error } = await supabase.from("users").insert([user]);
+// In your apiService.js:
+
+// 🚨 Must be updated to accept the client instance
+export async function addUser(supabaseClient, userProfileData) {
+  // Use the client instance passed from handleSignup
+  const { data, error } = await supabaseClient 
+    .from("users")
+    .insert([userProfileData]);
+    
   if (error) throw error;
   return data;
 }
@@ -29,11 +36,21 @@ export async function addApi(api) {
   return data[0];
 }
 
+// MODIFIED: Read (GET) All User's APIs for the Dashboard List
 export async function getApis(userId) {
   const { data, error } = await supabase
     .from("apis")
-    .select("*")
-    .eq("userId", userId);
+    .select(`
+      *,
+      apiMetrics (
+        status, 
+        responseTime, 
+        checkedAt
+      )
+    `)
+    .eq("userId", userId) // Although RLS handles this, it's good for clarity
+    .order("createdAt", { ascending: false });
+
   if (error) throw error;
   return data;
 }
@@ -47,12 +64,43 @@ export async function addApiMetric(metric) {
   return data[0];
 }
 
-export async function getApiMetrics(apiId) {
+// NEW: Read (GET) Single API
+export async function getSingleApi(apiId) {
   const { data, error } = await supabase
-    .from("apiMetrics")
-    .select("*")
-    .eq("apiId", apiId)
-    .order("checkedAt", { ascending: true });
+    .from("apis")
+    .select(`
+      *, 
+      apiMetrics (
+        status, 
+        responseTime, 
+        checkedAt
+      )
+    `)
+    .eq('id', apiId)
+    .single(); // Ensure only one record is returned
+
   if (error) throw error;
   return data;
+}
+// NEW: Update API Configuration
+export async function updateApi(apiId, updates) {
+  const { data, error } = await supabase
+    .from("apis")
+    .update(updates)
+    .eq('id', apiId)
+    .select() // Return the updated record
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+// NEW: Delete API Configuration
+export async function deleteApi(apiId) {
+  const { error } = await supabase
+    .from("apis")
+    .delete()
+    .eq('id', apiId);
+
+  if (error) throw error;
+  return true; // Return success status
 }
