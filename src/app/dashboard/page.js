@@ -8,7 +8,7 @@ import AddApiModal from "../../components/AddApiModal";
 // Import your service functions and auth context
 import { getApis } from "../../services/db/apiService"; 
 // FIX: Assume useAuth is a named export (most common for hooks)
-import { useAuth } from "../../services/db/authClient" 
+import { useAuth } from "../../services/db/authClient";
 
 export default function ApisPage() {
   // 1. Core Hooks (must run unconditionally)
