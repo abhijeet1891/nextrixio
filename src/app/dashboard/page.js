@@ -7,21 +7,21 @@ import ApiCard from "../../components/ApiCard";
 import AddApiModal from "../../components/AddApiModal";
 // Import your service functions and auth context
 import { getApis } from "../../services/db/apiService"; 
-// FIX: Assume useAuth is a named export (most common for hooks)
-import { useAuth } from "../../services/db/authClient";
+import { useAuth } from "../../services/db/authClient"; // FIX: Assume useAuth is a named export
 
 export default function ApisPage() {
   // 1. Core Hooks (must run unconditionally)
-  const { user } = useAuth();
+  // ⬅️ NOTE: The useAuth hook provides both user AND loading state.
+  const { user, loading: authLoading } = useAuth(); 
   const [apis, setApis] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Data fetching loading state
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
 
   // --- Data Fetching Function (Stabilized with useCallback) ---
   const fetchApis = useCallback(async () => {
-    // We intentionally ignore fetch if user is not present, 
-    // but we still need to set loading state correctly.
+    // If the user object is NOT ready (authLoading is true), we don't proceed.
+    // The useEffect below handles waiting for authLoading to finish.
     if (!user) {
       setIsLoading(false);
       return;
@@ -39,14 +39,15 @@ export default function ApisPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]); // Only needs to re-define when 'user' changes.
+  }, [user]); // Depend on user object
 
   // --- Initial Load Effect ---
   useEffect(() => {
-    // Runs when the component mounts and whenever 'user' or 'fetchApis' changes
-    fetchApis();
-  }, [user, fetchApis]); 
-  // NOTE: The previous dependency warning is resolved by including fetchApis (stabilized by useCallback).
+    // Only run fetchApis if authentication is NOT loading.
+    if (!authLoading) {
+      fetchApis();
+    }
+  }, [authLoading, fetchApis]); // Depend on authLoading AND fetchApis
   
   // --- Success Handler ---
   const handleModalSuccess = () => {
@@ -55,27 +56,28 @@ export default function ApisPage() {
   };
 
 
-  // --- RENDERING STATES ---
-  // We avoid rendering the dashboard content until we have a user state
-  if (isLoading && !user) {
+  // --- RENDERING STATES (Revised for clarity) ---
+  // Wait for both the user session AND the API data to load
+  if (authLoading || isLoading) {
     return (
       <div className="p-8 text-gray-900">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <p>Authenticating user...</p>
+        <p>{authLoading ? 'Authenticating...' : 'Loading API Configurations...'}</p>
       </div>
     );
   }
 
-  // Once user is loaded, if data is loading, show loading, otherwise continue.
-  if (isLoading) {
-    return (
-      <div className="p-8 text-gray-900">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <p>Loading API Configurations...</p>
-      </div>
+  // If loading is done, but there is no user, redirect (or show error)
+  if (!user) {
+     // NOTE: A proper redirect should be handled by Next.js Middleware.
+     return (
+        <div className="p-8 text-red-600">
+            <h1 className="text-3xl font-bold mb-6">Access Denied</h1>
+            <p>Please log in to view the dashboard.</p>
+        </div>
     );
   }
-
+  
   if (error) {
     return (
       <div className="p-8 text-red-600">

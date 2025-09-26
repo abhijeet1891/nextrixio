@@ -1,26 +1,26 @@
-// src/components/AddApiModal.js - FIXED CODE
-
+// src/components/AddApiModal.js
 'use client';
 import { useState } from "react";
-import { addApi } from "../services/db/apiService"; // Corrected relative import
-import { useAuth } from "../services/db/authClient"; // Corrected relative import
+import { addApi } from "../services/db/apiService"; 
+import { useAuth } from "../services/db/authClient"; 
 
 export default function AddApiModal({ isOpen, onClose, onSuccess }) {
   
-  // FIX: All Hooks must be called unconditionally at the top level.
-  const { user } = useAuth(); // Hook 1
-  const [name, setName] = useState(""); // Hook 2
-  const [url, setUrl] = useState(""); // Hook 3
-  const [method, setMethod] = useState("GET"); // Hook 4
-  const [alertMs, setAlertMs] = useState(5000); // Hook 5
-  const [isLoading, setIsLoading] = useState(false); // Hook 6
-  const [error, setError] = useState(null); // Hook 7
+  // ⬅️ FIX: Call all Hooks unconditionally at the very top.
+  const { user } = useAuth(); 
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
+  const [method, setMethod] = useState("GET");
+  const [alertMs, setAlertMs] = useState(5000); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Now, place the conditional logic after all hooks are called.
+  // Now, you can place the conditional return
   if (!isOpen) return null; 
 
+  // ... (rest of the component logic and JSX are unchanged)
+
   const handleSubmit = async (e) => {
-    // ... rest of the handleSubmit logic (no changes needed here)
     e.preventDefault();
     setError(null);
 
@@ -32,7 +32,7 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
       setError("API Name and URL are required.");
       return;
     }
-
+    // ... (rest of handleSubmit logic)
     setIsLoading(true);
 
     const newApiData = {
@@ -55,7 +55,6 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    // ... rest of the JSX (no changes needed here)
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded w-full max-w-md text-gray-900">
         <h2 className="text-xl font-bold mb-4">Add New API Endpoint</h2>
@@ -106,7 +105,7 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
                 className="border p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500"
                 min="100" // Minimum practical latency
               />
-              <small className="text-gray-500">Alert if latency  {alertMs}ms</small>
+              {/* <small className="text-gray-500">Alert if latency > {alertMs}ms</small> */}
             </div>
           </div>
 
