@@ -1,21 +1,26 @@
-// src/components/AddApiModal.js
+// src/components/AddApiModal.js - FIXED CODE
+
 'use client';
 import { useState } from "react";
-import { addApi } from "../services/db/apiService"; // Import your service function
-import { useAuth } from "../services/db/authClient"; // Assuming you use this hook for user context
+import { addApi } from "../services/db/apiService"; // Corrected relative import
+import { useAuth } from "../services/db/authClient"; // Corrected relative import
 
 export default function AddApiModal({ isOpen, onClose, onSuccess }) {
-  if (!isOpen) return null;
+  
+  // FIX: All Hooks must be called unconditionally at the top level.
+  const { user } = useAuth(); // Hook 1
+  const [name, setName] = useState(""); // Hook 2
+  const [url, setUrl] = useState(""); // Hook 3
+  const [method, setMethod] = useState("GET"); // Hook 4
+  const [alertMs, setAlertMs] = useState(5000); // Hook 5
+  const [isLoading, setIsLoading] = useState(false); // Hook 6
+  const [error, setError] = useState(null); // Hook 7
 
-  const { user } = useAuth(); // Get the current authenticated user
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [method, setMethod] = useState("GET");
-  const [alertMs, setAlertMs] = useState(5000); // Default 5000ms (5 seconds)
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Now, place the conditional logic after all hooks are called.
+  if (!isOpen) return null; 
 
   const handleSubmit = async (e) => {
+    // ... rest of the handleSubmit logic (no changes needed here)
     e.preventDefault();
     setError(null);
 
@@ -31,7 +36,6 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
     setIsLoading(true);
 
     const newApiData = {
-      // Data structure must match your 'apis' table columns
       "userId": user.id, 
       name,
       url,
@@ -40,9 +44,7 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
     };
 
     try {
-      // Call the service function to insert the new API
       await addApi(newApiData); 
-      // If successful, call the parent success handler to close modal and refresh list
       onSuccess(); 
     } catch (err) {
       console.error('API creation failed:', err);
@@ -53,6 +55,7 @@ export default function AddApiModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
+    // ... rest of the JSX (no changes needed here)
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded w-full max-w-md text-gray-900">
         <h2 className="text-xl font-bold mb-4">Add New API Endpoint</h2>
